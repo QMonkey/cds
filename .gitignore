@@ -34,3 +34,7 @@
 # Ctags files
 .tags
 tags
+
+# Vim swap files
+*.swp
+*.swo

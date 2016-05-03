@@ -25,4 +25,23 @@ typedef struct List {
 #define listFirst(l) ((l)->head)
 #define listLast(l) ((l)->tail)
 
+#define listSetDupMethod(l, m) ((l)->dup = (m))
+#define listSetFreeMethod(l, m) ((l)->free = (m))
+#define listSetCompareMethod(l, m) ((l)->compare = (m))
+
+#define listGetDupMethod(l) ((l)->dup)
+#define listGetFreeMethod(l) ((l)->free)
+#define listGetCompareMethod(l) ((l)->compare)
+
+List *listCreate();
+List *listPushHead(List *list, void *value);
+List *listPushTail(List *list, void *value);
+List *listInsert(List *list, ListNode *node, void *value, int after);
+ListNode *listPopHead(List *list);
+ListNode *listPopTail(List *list);
+ListNode *listSearch(List *list, void *value);
+ListNode *listIndex(List *list, int index);
+void listDel(List *list, ListNode *node);
+void listRotate(List *list);
+
 #endif
