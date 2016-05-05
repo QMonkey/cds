@@ -1,6 +1,6 @@
 EXECPATH = bin
 OBJPATH = obj
-INCLUDEPATH = List
+INCLUDEPATH = list
 SRCPATH = test
 CC = gcc
 OPTIONS = -Wall
