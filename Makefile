@@ -1,6 +1,6 @@
 EXECPATH = bin
 OBJPATH = obj
-INCLUDEPATH = list
+INCLUDEPATH = list rbtree
 SRCPATH = test
 CC = gcc
 OPTIONS = -Wall
@@ -21,10 +21,10 @@ $(EXECPATH)/list_test: $(OBJPATH)/list_test.o
 	$(CC) -g $< -o $@
 
 $(OBJPATH)/list.o: list/list.c
-	$(CC) -g -c $< -I $(INCLUDEPATH) -o $@ $(OPTIONS)
+	$(CC) -g -c $< $(foreach path,$(INCLUDEPATH),-I $(path)) -o $@ $(OPTIONS)
 
 $(OBJPATH)/list_test.o: $(SRCPATH)/list_test.c
-	$(CC) -g -c $< -I $(INCLUDEPATH) -o $@ $(OPTIONS)
+	$(CC) -g -c $< $(foreach path,$(INCLUDEPATH),-I $(path)) -o $@ $(OPTIONS)
 
 clean:
 	-rm -rf $(EXECS) $(OBJS)
