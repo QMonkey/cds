@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include <stddef.h>
+
 typedef struct ListNode {
 	struct ListNode *prev;
 	struct ListNode *next;
@@ -34,11 +36,9 @@ typedef struct List {
 #define listGetCompareMethod(l) ((l)->compare)
 
 List *listCreate();
-List *listPushHead(List *list, void *value);
-List *listPushTail(List *list, void *value);
+List *listAddHead(List *list, void *value);
+List *listAddTail(List *list, void *value);
 List *listInsert(List *list, ListNode *node, void *value, int after);
-ListNode *listPopHead(List *list);
-ListNode *listPopTail(List *list);
 ListNode *listSearch(List *list, void *value);
 ListNode *listIndex(List *list, int index);
 void listDel(List *list, ListNode *node);

@@ -15,7 +15,7 @@ List *listCreate()
 	return list;
 }
 
-List *listPushHead(List *list, void *value)
+List *listAddHead(List *list, void *value)
 {
 	ListNode *node = malloc(sizeof(ListNode));
 	node->value = value;
@@ -26,7 +26,7 @@ List *listPushHead(List *list, void *value)
 	return list;
 }
 
-List *listPushTail(List *list, void *value)
+List *listAddTail(List *list, void *value)
 {
 	ListNode *node = malloc(sizeof(ListNode));
 	node->value = value;
@@ -45,7 +45,7 @@ List *listInsert(List *list, ListNode *node, void *value, int after)
 	if (after) {
 		ListNode *next = node->next;
 		if (next == NULL) {
-			return listPushTail(list, value);
+			return listAddTail(list, value);
 		}
 
 		newNode->prev = node;
@@ -55,7 +55,7 @@ List *listInsert(List *list, ListNode *node, void *value, int after)
 	} else {
 		ListNode *prev = node->prev;
 		if (prev == NULL) {
-			return listPushHead(list, value);
+			return listAddHead(list, value);
 		}
 
 		newNode->prev = prev;
@@ -66,22 +66,6 @@ List *listInsert(List *list, ListNode *node, void *value, int after)
 
 	++list->length;
 	return list;
-}
-
-ListNode *listPopHead(List *list)
-{
-	ListNode *node = list->head;
-	list->head = node->next;
-	node->next = NULL;
-	return node;
-}
-
-ListNode *listPopTail(List *list)
-{
-	ListNode *node = list->tail;
-	list->tail = node->prev;
-	node->prev = NULL;
-	return node;
 }
 
 ListNode *listSearch(List *list, void *value)
@@ -101,7 +85,7 @@ ListNode *listIndex(List *list, int index)
 {
 	ListNode *node = list->head;
 	int i;
-	for (i = 0; i < list->length; ++i) {
+	for (i = 0; i < listLength(list); ++i) {
 		if (i == index) {
 			break;
 		}
@@ -131,5 +115,19 @@ void listDel(List *list, ListNode *node)
 
 void listRotate(List *list)
 {
-	// TODO
+	if (listLength(list) == 0) {
+		return;
+	}
+
+	ListNode *current = list->head;
+	list->head = list->tail;
+	list->tail = list->head;
+
+	ListNode *next = NULL;
+	while (current != NULL) {
+		next = current->next;
+		current->next = current->prev;
+		current->prev = next;
+		current = next;
+	}
 }
