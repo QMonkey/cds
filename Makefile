@@ -1,6 +1,6 @@
 EXECPATH = bin
 OBJPATH = obj
-INCLUDEPATH = list rbtree
+INCLUDEPATH = include list rbtree
 SRCPATH = test
 CC = gcc
 OPTIONS = -Wall
@@ -14,7 +14,7 @@ dir:
 	mkdir -p $(OBJPATH)
 	mkdir -p $(EXECPATH)
 
-build: $(EXECS) $(OBJS)
+build: $(EXECS)
 
 $(EXECPATH)/list_test: $(OBJPATH)/list.o
 $(EXECPATH)/list_test: $(OBJPATH)/list_test.o

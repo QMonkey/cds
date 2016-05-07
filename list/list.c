@@ -1,24 +1,14 @@
 #include "list.h"
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-List *listCreate()
+List *listAddHead(List *list, ListNode *node)
 {
-	List *list = malloc(sizeof(List));
-	if (list == NULL) {
-		return NULL;
+	if (list->head != NULL) {
+		list->head->prev = node;
 	}
 
-	memset(list, 0, sizeof(List));
-	return list;
-}
-
-List *listAddHead(List *list, void *value)
-{
-	ListNode *node = malloc(sizeof(ListNode));
-	node->value = value;
 	node->prev = NULL;
 	node->next = list->head;
 	list->head = node;
@@ -26,10 +16,12 @@ List *listAddHead(List *list, void *value)
 	return list;
 }
 
-List *listAddTail(List *list, void *value)
+List *listAddTail(List *list, ListNode *node)
 {
-	ListNode *node = malloc(sizeof(ListNode));
-	node->value = value;
+	if (list->tail != NULL) {
+		list->tail->next = node;
+	}
+
 	node->next = NULL;
 	node->prev = list->tail;
 	list->tail = node;
@@ -37,15 +29,12 @@ List *listAddTail(List *list, void *value)
 	return list;
 }
 
-List *listInsert(List *list, ListNode *node, void *value, int after)
+List *listInsert(List *list, ListNode *node, ListNode *newNode, int after)
 {
-	ListNode *newNode = malloc(sizeof(ListNode));
-	newNode->value = value;
-
 	if (after) {
 		ListNode *next = node->next;
 		if (next == NULL) {
-			return listAddTail(list, value);
+			return listAddTail(list, newNode);
 		}
 
 		newNode->prev = node;
@@ -55,7 +44,7 @@ List *listInsert(List *list, ListNode *node, void *value, int after)
 	} else {
 		ListNode *prev = node->prev;
 		if (prev == NULL) {
-			return listAddHead(list, value);
+			return listAddHead(list, newNode);
 		}
 
 		newNode->prev = prev;
@@ -66,19 +55,6 @@ List *listInsert(List *list, ListNode *node, void *value, int after)
 
 	++list->length;
 	return list;
-}
-
-ListNode *listSearch(List *list, void *value)
-{
-	ListNode *node = list->head;
-	while (node != NULL) {
-		if (list->compare(node->value, value) == 0) {
-			break;
-		}
-
-		node = node->next;
-	}
-	return node;
 }
 
 ListNode *listIndex(List *list, int index)
@@ -96,10 +72,18 @@ ListNode *listIndex(List *list, int index)
 	return node;
 }
 
-void listDel(List *list, ListNode *node)
+void listRemove(List *list, ListNode *node)
 {
 	ListNode *prev = node->prev;
 	ListNode *next = node->next;
+
+	if (list->head == node) {
+		list->head = next;
+	}
+
+	if (list->tail == node) {
+		list->tail = prev;
+	}
 
 	if (prev != NULL) {
 		prev->next = next;
@@ -109,8 +93,7 @@ void listDel(List *list, ListNode *node)
 		next->prev = prev;
 	}
 
-	list->free(node->value);
-	free(node);
+	--list->length;
 }
 
 void listRotate(List *list)
@@ -121,7 +104,7 @@ void listRotate(List *list)
 
 	ListNode *current = list->head;
 	list->head = list->tail;
-	list->tail = list->head;
+	list->tail = current;
 
 	ListNode *next = NULL;
 	while (current != NULL) {
