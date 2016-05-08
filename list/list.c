@@ -61,17 +61,13 @@ List *listInsert(List *list, int index, void *value)
 	newNode->value = value;
 
 	int i;
-	ListNode *node = listNodeGet(list->list.head);
+	ListNode *node = listNodeGet(_listFirst(&list->list));
 	for (i = 0; i < listLength(list); ++i) {
 		if (i == index) {
 			break;
 		}
 
 		node = listNodeNext(node);
-	}
-
-	if (node == NULL) {
-		return list;
 	}
 
 	_listInsert(&list->list, &node->node, &newNode->node, 0);
@@ -118,7 +114,7 @@ void *listPopHead(List *list) { return listRemove(list, 0); }
 
 void *listPopTail(List *list)
 {
-	ListNode *node = listNodeGet(list->list.tail);
+	ListNode *node = listNodeGet(_listLast(&list->list));
 	if (node == NULL) {
 		return NULL;
 	}
@@ -132,18 +128,16 @@ void *listPopTail(List *list)
 
 void *listRemove(List *list, int index)
 {
+	assert(index >= 0 && index < listLength(list));
+
 	int i;
-	ListNode *node = listNodeGet(list->list.head);
+	ListNode *node = listNodeGet(_listFirst(&list->list));
 	for (i = 0; i < listLength(list); ++i) {
 		if (i == index) {
 			break;
 		}
 
 		node = listNodeNext(node);
-	}
-
-	if (node == NULL) {
-		return NULL;
 	}
 
 	_listRemove(&list->list, &node->node);
@@ -155,7 +149,7 @@ void *listRemove(List *list, int index)
 
 void listDel(List *list, void *value)
 {
-	ListNode *node = listNodeGet(list->list.head);
+	ListNode *node = listNodeGet(_listFirst(&list->list));
 	while (node != NULL) {
 		if (list->compare(node->value, value) == 0) {
 			break;
@@ -182,9 +176,9 @@ List *listDup(List *list)
 	l->dup = list->dup;
 	l->compare = list->compare;
 
-	ListNode *node = listNodeGet(list->list.head);
+	ListNode *node = listNodeGet(_listFirst(&list->list));
 	while (node != NULL) {
-		listPushTail(l, l->dup(node->value));
+		listPushTail(l, list->dup(node->value));
 	}
 
 	return l;

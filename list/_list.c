@@ -1,5 +1,6 @@
 #include "_list.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -35,6 +36,8 @@ _List *_listAddTail(_List *list, _ListNode *node)
 
 _List *_listInsert(_List *list, _ListNode *node, _ListNode *newNode, int after)
 {
+	assert(node != NULL);
+
 	if (after) {
 		if (list->tail == node) {
 			return _listAddTail(list, newNode);
