@@ -1,6 +1,7 @@
 #include "base.h"
 #include "clist.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,8 @@ CList *clistPushTail(CList *list, void *value)
 
 CList *clistInsert(CList *list, int index, void *value)
 {
+	assert(index >= 0 && index <= clistLength(list));
+
 	if (index == 0) {
 		return clistPushHead(list, value);
 	}
@@ -121,7 +124,16 @@ void *clistPopHead(CList *list) { return clistRemove(list, 0); }
 
 void *clistPopTail(CList *list)
 {
-	return clistRemove(list, clistLength(list) - 1);
+	CListNode *node = clistNodeGet(list->list.tail);
+	if (node == NULL) {
+		return NULL;
+	}
+
+	listRemove(&list->list, &node->node);
+	void *value = node->value;
+	free(node);
+
+	return value;
 }
 
 void *clistRemove(CList *list, int index)
@@ -169,7 +181,20 @@ void clistDel(CList *list, void *value)
 	free(node);
 }
 
-CList *clistDup(CList *list) {}
+CList *clistDup(CList *list)
+{
+	CList *l = clistCreate();
+	l->free = list->free;
+	l->dup = list->dup;
+	l->compare = list->compare;
+
+	CListNode *node = clistNodeGet(list->list.head);
+	while (node != NULL) {
+		clistPushTail(l, l->dup(node->value));
+	}
+
+	return l;
+}
 
 void clistRotate(CList *list) { listRotate(&list->list); }
 

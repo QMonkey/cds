@@ -5,8 +5,10 @@
 
 List *listAddHead(List *list, ListNode *node)
 {
-	if (list->head != NULL) {
+	if (listLength(list) != 0) {
 		list->head->prev = node;
+	} else {
+		list->tail = node;
 	}
 
 	node->prev = NULL;
@@ -18,8 +20,10 @@ List *listAddHead(List *list, ListNode *node)
 
 List *listAddTail(List *list, ListNode *node)
 {
-	if (list->tail != NULL) {
+	if (listLength(list) != 0) {
 		list->tail->next = node;
+	} else {
+		list->head = node;
 	}
 
 	node->next = NULL;
@@ -32,21 +36,21 @@ List *listAddTail(List *list, ListNode *node)
 List *listInsert(List *list, ListNode *node, ListNode *newNode, int after)
 {
 	if (after) {
-		ListNode *next = node->next;
-		if (next == NULL) {
+		if (list->tail == node) {
 			return listAddTail(list, newNode);
 		}
 
+		ListNode *next = node->next;
 		newNode->prev = node;
 		newNode->next = next;
 		node->next = newNode;
 		next->prev = newNode;
 	} else {
-		ListNode *prev = node->prev;
-		if (prev == NULL) {
+		if (list->head == node) {
 			return listAddHead(list, newNode);
 		}
 
+		ListNode *prev = node->prev;
 		newNode->prev = prev;
 		newNode->next = node;
 		prev->next = newNode;
