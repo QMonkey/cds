@@ -6,7 +6,7 @@ CC = gcc
 OPTIONS = -Wall
 
 EXECS = $(EXECPATH)/list_test
-OBJS = $(OBJPATH)/_list.o $(OBJPATH)/list.o $(OBJPATH)/list_test.o
+OBJS = $(OBJPATH)/list.o $(OBJPATH)/list_test.o
 
 all: dir build
 
@@ -16,11 +16,8 @@ dir:
 
 build: $(EXECS)
 
-$(EXECPATH)/list_test: $(OBJPATH)/_list.o $(OBJPATH)/list.o $(OBJPATH)/list_test.o
+$(EXECPATH)/list_test: $(OBJPATH)/list.o $(OBJPATH)/list_test.o
 	$(CC) -g $^ -o $@
-
-$(OBJPATH)/_list.o: list/_list.c
-	$(CC) -g -c $< $(foreach path,$(INCLUDEPATH),-I $(path)) -o $@ $(OPTIONS)
 
 $(OBJPATH)/list.o: list/list.c
 	$(CC) -g -c $< $(foreach path,$(INCLUDEPATH),-I $(path)) -o $@ $(OPTIONS)

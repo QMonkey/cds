@@ -1,26 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
-#include "_list.h"
-
-#include <stddef.h>
-
-#define DIRECTION_ASCENDING 1
-#define DIRECTION_DESCENDING 0
-
-typedef struct ListIter {
-	int direction;
-	_ListNode *next;
-} ListIter;
-
-typedef struct List {
-	void *(*dup)(void *value);
-	void (*free)(void *value);
-	int (*compare)(void *value1, void *value2);
-	_List list;
-} List;
-
-#define listLength(l) (_listLength(&(l)->list))
+typedef struct List List;
+typedef struct ListIter ListIter;
 
 #define listSetDupMethod(l, m) ((l)->dup = (m))
 #define listSetFreeMethod(l, m) ((l)->free = (m))
