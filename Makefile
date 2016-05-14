@@ -1,6 +1,6 @@
 EXECPATH = bin
 OBJPATH = obj
-INCLUDEPATH = include list rbtree
+INCLUDEPATH = list rbtree hash
 SRCPATH = test
 CC = gcc
 OPTIONS = -Wall

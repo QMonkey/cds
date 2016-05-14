@@ -1,4 +1,3 @@
-#include "base.h"
 #include "list.h"
 
 #include <assert.h>
@@ -246,8 +245,6 @@ void listDel(List *list, void *value)
 List *listDup(List *list)
 {
 	List *l = listCreate(list->alloc, list->dealloc);
-	l->alloc = list->alloc;
-	l->dealloc = list->dealloc;
 	l->free = list->free;
 	l->dup = list->dup;
 	l->compare = list->compare;
