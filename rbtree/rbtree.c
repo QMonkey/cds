@@ -60,7 +60,7 @@ static void insertFixUp(RBTree *tree, RBTreeNode *node)
 	RBTreeNode *parent = NULL;
 	RBTreeNode *grandparent = NULL;
 	RBTreeNode *uncle = NULL;
-	RBTreeNode *tmp = NULL;
+	RBTreeNode *tmpNode = NULL;
 
 	while (rbtreeIsRed(node)) {
 		parent = node->parent;
@@ -77,9 +77,9 @@ static void insertFixUp(RBTree *tree, RBTreeNode *node)
 			uncle = grandparent->right;
 			if (node == parent->right) {
 				rotateLeft(tree, parent);
-				tmp = node;
+				tmpNode = node;
 				node = parent;
-				parent = tmp;
+				parent = tmpNode;
 			}
 
 			if (rbtreeIsRed(uncle)) {
@@ -97,9 +97,9 @@ static void insertFixUp(RBTree *tree, RBTreeNode *node)
 			uncle = grandparent->left;
 			if (node == parent->left) {
 				rotateRight(tree, parent);
-				tmp = node;
+				tmpNode = node;
 				node = parent;
-				parent = tmp;
+				parent = tmpNode;
 			}
 
 			if (rbtreeIsRed(uncle)) {
@@ -167,11 +167,165 @@ RBTree *rbtreeInsert(RBTree *tree, void *key, void *value)
 	return tree;
 }
 
-static void delFixUp(RBTree *tree, RBTreeNode *node) {}
+static void transplant(RBTree *tree, RBTreeNode *dest, RBTreeNode *src)
+{
+	if (dest->parent == NULL) {
+		tree->root = src;
+	} else if (dest == dest->parent->left) {
+		dest->parent->left = src;
+	} else {
+		dest->parent->right = src;
+	}
+
+	if (src != NULL) {
+		src->color = dest->color;
+		src->parent = dest->parent;
+	}
+}
+
+static RBTreeNode *rbtreeMinNode(RBTree *tree, RBTreeNode *root)
+{
+	while (root->left != NULL) {
+		root = root->left;
+	}
+
+	return root;
+}
+
+static void delFixUp(RBTree *tree, RBTreeNode *node)
+{
+	RBTreeNode *parent = NULL;
+	while (node != tree->root) {
+		if (rbtreeIsRed(node)) {
+			node->color = RB_COLOR_BLACK;
+			break;
+		}
+
+		parent = node->parent;
+		if (parent == NULL) {
+			break;
+		}
+
+		RBTreeNode *brother = NULL;
+		if (node == parent->left) {
+			brother = parent->right;
+			if (rbtreeIsRed(brother)) {
+				rotateLeft(tree, parent);
+				parent->color = RB_COLOR_RED;
+				brother->color = RB_COLOR_BLACK;
+				brother = parent->right;
+			}
+
+			if (!rbtreeIsRed(brother->left) &&
+			    !rbtreeIsRed(brother->right)) {
+				brother->color = RB_COLOR_RED;
+				node = parent;
+			} else {
+				if (rbtreeIsRed(node->left)) {
+					brother->left->color = RB_COLOR_BLACK;
+					brother->color = RB_COLOR_RED;
+					rotateRight(tree, brother);
+					brother = parent->right;
+				}
+
+				brother->right->color = RB_COLOR_BLACK;
+				brother->color = parent->color;
+				parent->color = RB_COLOR_BLACK;
+				rotateLeft(tree, parent);
+				node = tree->root;
+			}
+		} else {
+			brother = parent->left;
+			if (rbtreeIsRed(brother)) {
+				rotateRight(tree, parent);
+				parent->color = RB_COLOR_RED;
+				brother->color = RB_COLOR_BLACK;
+				brother = parent->left;
+			}
+
+			if (!rbtreeIsRed(brother->left) &&
+			    !rbtreeIsRed(brother->right)) {
+				brother->left->color = RB_COLOR_RED;
+				node = parent;
+			} else {
+				if (rbtreeIsRed(brother->right)) {
+					brother->right->color = RB_COLOR_BLACK;
+					brother->color = RB_COLOR_RED;
+					rotateLeft(tree, brother);
+					brother = parent->left;
+				}
+
+				brother->color = parent->color;
+				parent->color = RB_COLOR_BLACK;
+				brother->left->color = RB_COLOR_BLACK;
+				rotateRight(tree, parent);
+				node = tree->root;
+			}
+		}
+	}
+
+	tree->root->color = RB_COLOR_BLACK;
+}
 
 RBTree *rbtreeDel(RBTree *tree, void *key)
 {
-	// TODO
+	RBTreeNode *node = tree->root;
+	int cmp;
+	while (node != NULL && (cmp = tree->compare(key, node->key)) != 0) {
+		if (cmp < 0) {
+			node = node->left;
+		} else {
+			node = node->right;
+		}
+	}
+
+	if (node == NULL) {
+		return tree;
+	}
+
+	int color = node->color;
+	RBTreeNode *fixUpNode = NULL;
+
+	if (node->left == NULL) {
+		fixUpNode = node->right;
+	} else if (node->right == NULL) {
+		fixUpNode = node->left;
+	} else {
+		RBTreeNode *tmpNode = rbtreeMinNode(tree, node->right);
+		if (tmpNode->parent == node) {
+			fixUpNode = tmpNode;
+		} else {
+			fixUpNode = tmpNode->right;
+			color = tmpNode->color;
+
+			void *tmp = NULL;
+			tmp = node->key;
+			node->key = tmpNode->key;
+			tmpNode->key = tmp;
+
+			tmp = node->value;
+			node->value = tmpNode->value;
+			tmpNode->value = tmp;
+			node = tmpNode;
+		}
+	}
+
+	transplant(tree, node, fixUpNode);
+
+	if (tree->free_key != NULL) {
+		tree->free_key(node->key);
+	}
+
+	if (tree->free_value != NULL) {
+		tree->free_value(node->value);
+	}
+
+	tree->dealloc(node);
+
+	if (color == RB_COLOR_BLACK) {
+		delFixUp(tree, fixUpNode);
+	}
+
 	--tree->size;
 	return tree;
 }
