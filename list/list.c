@@ -47,6 +47,33 @@ List *listCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
 	return list;
 }
 
+List *listSetDupMethod(List *list, void *(*dup)(void *))
+{
+	list->dup = dup;
+	return list;
+}
+
+List *listSetFreeMethod(List *list, void (*free)(void *))
+{
+	list->free = free;
+	return list;
+}
+
+List *listSetCompareMethod(List *list, int (*compare)(void *, void *))
+{
+	list->compare = compare;
+	return list;
+}
+
+void *(*listGetDupMethod(List *list))(void *) { return list->dup; }
+
+void (*listGetFreeMethod(List *list))(void *) { return list->free; }
+
+int (*listGetCompareMethod(List *list))(void *, void *)
+{
+	return list->compare;
+}
+
 size_t listLength(List *list) { return list->length; }
 
 List *listPushHead(List *list, void *value)
@@ -275,6 +302,20 @@ void listRotate(List *list)
 		current->prev = next;
 		current = next;
 	}
+}
+
+void listDestroy(List *list)
+{
+	ListNode *node = list->head;
+	while (node != NULL) {
+		if (list->free != NULL) {
+			list->free(node->value);
+		}
+
+		list->dealloc(node);
+	}
+
+	list->dealloc(list);
 }
 
 ListIter *listIterator(List *list)
