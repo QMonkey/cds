@@ -1,11 +1,19 @@
 #include "rbtree.h"
 
 #include <stddef.h>
+#include <string.h>
 
 #define RB_COLOR_RED 0
 #define RB_COLOR_BLACK 1
 
-#define rbtreeIsRed(node) ((node) != NULL && (node)->color == RB_COLOR_RED)
+typedef struct RBTreeNode {
+	void *key;
+	void *value;
+	int color;
+	struct RBTreeNode *parent;
+	struct RBTreeNode *left;
+	struct RBTreeNode *right;
+} RBTreeNode;
 
 struct RBTree {
 	RBTreeNode *root;
@@ -18,14 +26,16 @@ struct RBTree {
 	int (*compare)(void *key1, void *key2);
 };
 
-struct RBTreeNode {
-	void *key;
-	void *value;
-	int color;
-	struct RBTreeNode *parent;
-	struct RBTreeNode *left;
-	struct RBTreeNode *right;
-};
+#define rbtreeIsRed(node) ((node) != NULL && (node)->color == RB_COLOR_RED)
+
+RBTree *rbtreeCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
+{
+	RBTree *tree = alloc(sizeof(RBTree));
+	memset(tree, 0, sizeof(RBTree));
+	tree->alloc = alloc;
+	tree->dealloc = dealloc;
+	return tree;
+}
 
 static void rotateLeft(RBTree *tree, RBTreeNode *node)
 {
@@ -54,6 +64,12 @@ static void rotateRight(RBTree *tree, RBTreeNode *node)
 }
 
 size_t rbtreeSize(RBTree *tree) { return tree->size; }
+
+static RBTreeNode *successor() {}
+
+int rbtreeContains(RBTree *tree, void *key) {}
+
+void *rbtreeGet(RBTree *tree, void *key) {}
 
 static void insertFixUp(RBTree *tree, RBTreeNode *node)
 {
@@ -119,7 +135,7 @@ static void insertFixUp(RBTree *tree, RBTreeNode *node)
 	tree->root->color = RB_COLOR_BLACK;
 }
 
-RBTree *rbtreeInsert(RBTree *tree, void *key, void *value)
+RBTree *rbtreeSet(RBTree *tree, void *key, void *value)
 {
 	RBTreeNode *later = NULL;
 	RBTreeNode *current = tree->root;
@@ -329,3 +345,7 @@ RBTree *rbtreeDel(RBTree *tree, void *key)
 	--tree->size;
 	return tree;
 }
+
+RBTree *rbtreeClear(RBTree *tree) {}
+
+void rbtreeDestroy(RBTree *tree) {}

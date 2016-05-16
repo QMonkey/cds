@@ -25,6 +25,7 @@ void *listRemove(List *list, int index);
 void listDel(List *list, void *value);
 List *listDup(List *list);
 void listRotate(List *list);
+List *listClear(List *list);
 void listDestroy(List *list);
 ListIter *listIterator(List *list);
 ListIter *listReverseIterator(List *list);

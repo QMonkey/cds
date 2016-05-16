@@ -304,6 +304,26 @@ void listRotate(List *list)
 	}
 }
 
+List *listClear(List *list)
+{
+	ListNode *node = list->head;
+	ListNode *tmp = NULL;
+	while (node != NULL) {
+		if (list->free != NULL) {
+			list->free(node->value);
+		}
+
+		tmp = node;
+		node = node->next;
+		list->dealloc(tmp);
+	}
+
+	list->head = NULL;
+	list->tail = NULL;
+	list->length = 0;
+	return list;
+}
+
 void listDestroy(List *list)
 {
 	ListNode *node = list->head;
