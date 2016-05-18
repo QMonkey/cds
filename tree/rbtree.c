@@ -1,3 +1,4 @@
+#include "pair.h"
 #include "rbtree.h"
 
 #include <stddef.h>
@@ -6,14 +7,16 @@
 #define RB_COLOR_RED 0
 #define RB_COLOR_BLACK 1
 
-typedef struct RBTreeNode {
+typedef struct RBTreeNode RBTreeNode;
+
+struct RBTreeNode {
 	void *key;
 	void *value;
 	int color;
-	struct RBTreeNode *parent;
-	struct RBTreeNode *left;
-	struct RBTreeNode *right;
-} RBTreeNode;
+	RBTreeNode *parent;
+	RBTreeNode *left;
+	RBTreeNode *right;
+};
 
 struct RBTree {
 	RBTreeNode *root;
@@ -24,6 +27,11 @@ struct RBTree {
 	void (*free_key)(void *key);
 	void (*free_value)(void *value);
 	int (*compare)(void *key1, void *key2);
+};
+
+struct RBTreeIter {
+	RBTreeNode *next;
+	void (*dealloc)(void *);
 };
 
 #define rbtreeIsRed(node) ((node) != NULL && (node)->color == RB_COLOR_RED)
@@ -65,11 +73,52 @@ static void rotateRight(RBTree *tree, RBTreeNode *node)
 
 size_t rbtreeSize(RBTree *tree) { return tree->size; }
 
-static RBTreeNode *successor() {}
+static RBTreeNode *successor(RBTreeNode *node)
+{
+	if (node == NULL) {
+		return NULL;
+	}
 
-int rbtreeContains(RBTree *tree, void *key) {}
+	if (node->right != NULL) {
+		node = node->right;
+		while (node->left != NULL) {
+			node = node->left;
+		}
+	} else {
+		RBTreeNode *parent = node->parent;
+		while (parent != NULL && node == parent->right) {
+			node = parent;
+			parent = parent->parent;
+		}
 
-void *rbtreeGet(RBTree *tree, void *key) {}
+		node = parent;
+	}
+
+	return node;
+}
+
+int rbtreeContains(RBTree *tree, void *key)
+{
+	return rbtreeGet(tree, key) != NULL;
+}
+
+void *rbtreeGet(RBTree *tree, void *key)
+{
+	RBTreeNode *node = tree->root;
+	int cmp;
+	while (node != NULL) {
+		cmp = tree->compare(key, node->key);
+		if (cmp == 0) {
+			break;
+		} else if (cmp < 0) {
+			node = node->left;
+		} else {
+			node = node->right;
+		}
+	}
+
+	return node->value;
+}
 
 static void insertFixUp(RBTree *tree, RBTreeNode *node)
 {
@@ -346,6 +395,35 @@ RBTree *rbtreeDel(RBTree *tree, void *key)
 	return tree;
 }
 
-RBTree *rbtreeClear(RBTree *tree) {}
+RBTree *rbtreeClear(RBTree *tree)
+{
+	// TODO
+	return tree;
+}
 
-void rbtreeDestroy(RBTree *tree) {}
+void rbtreeDestroy(RBTree *tree)
+{
+	rbtreeClear(tree);
+	tree->dealloc(tree);
+}
+
+RBTreeIter *rbtreeIterator(RBTree *tree)
+{
+	RBTreeIter *iter = tree->alloc(sizeof(RBTreeIter));
+	iter->dealloc = tree->dealloc;
+	iter->next = rbtreeMinNode(tree, tree->root);
+	return iter;
+}
+
+int rbtreeIterHasNext(RBTreeIter *iter) { return iter->next != NULL; }
+
+Pair rbtreeIterNext(RBTreeIter *iter)
+{
+	Pair p;
+	p.first = iter->next->key;
+	p.second = iter->next->value;
+	iter->next = successor(iter->next);
+	return p;
+}
+
+void rbtreeIterDestroy(RBTreeIter *iter) { iter->dealloc(iter); }

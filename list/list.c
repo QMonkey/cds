@@ -326,15 +326,7 @@ List *listClear(List *list)
 
 void listDestroy(List *list)
 {
-	ListNode *node = list->head;
-	while (node != NULL) {
-		if (list->free != NULL) {
-			list->free(node->value);
-		}
-
-		list->dealloc(node);
-	}
-
+	listClear(list);
 	list->dealloc(list);
 }
 
