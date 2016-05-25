@@ -395,9 +395,51 @@ RBTree *rbtreeDel(RBTree *tree, void *key)
 	return tree;
 }
 
+// Morris Postorder Traversal
 RBTree *rbtreeClear(RBTree *tree)
 {
-	// TODO
+	RBTreeNode node;
+	node.left = tree->root;
+	node.right = NULL;
+	node.parent = NULL;
+
+	RBTreeNode *current = &node;
+	RBTreeNode *tmp = NULL;
+	while (current != NULL) {
+		if ((tmp = current->left) != NULL) {
+			while (tmp->right != NULL && tmp->right != current) {
+				tmp = tmp->right;
+			}
+
+			if (tmp->right == NULL) {
+				tmp->right = current;
+				current = current->left;
+			} else {
+				RBTreeNode *tmpParent = NULL;
+				while (tmp != current) {
+					tmpParent = tmp->parent;
+
+					if (tree->free_key != NULL) {
+						tree->free_key(tmp->key);
+					}
+
+					if (tree->free_value != NULL) {
+						tree->free_value(tmp->value);
+					}
+
+					tree->dealloc(tmp);
+					tmp = tmpParent;
+				}
+
+				current = current->right;
+			}
+		} else {
+			current = current->right;
+		}
+	}
+
+	tree->root = NULL;
+	tree->size = 0;
 	return tree;
 }
 
