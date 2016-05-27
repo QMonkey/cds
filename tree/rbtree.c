@@ -147,6 +147,10 @@ void *rbtreeGet(RBTree *tree, void *key)
 		}
 	}
 
+	if (node == NULL) {
+		return NULL;
+	}
+
 	return node->value;
 }
 
@@ -375,7 +379,7 @@ static void delFixUp(RBTree *tree, RBTreeNode *node)
 	tree->root->color = RB_COLOR_BLACK;
 }
 
-RBTree *rbtreeDel(RBTree *tree, void *key)
+void *rbtreeRemove(RBTree *tree, void *key)
 {
 	RBTreeNode *node = tree->root;
 	int cmp;
@@ -419,13 +423,30 @@ RBTree *rbtreeDel(RBTree *tree, void *key)
 	}
 
 	transplant(tree, node, fixUpNode);
-	rbtreeFreeNode(tree, node);
+
+	void *value = node->value;
+
+	if (tree->free_key != NULL) {
+		tree->free_key(node->key);
+	}
+
+	tree->dealloc(node);
 
 	if (color == RB_COLOR_BLACK) {
 		delFixUp(tree, fixUpNode);
 	}
 
 	--tree->size;
+	return value;
+}
+
+RBTree *rbtreeDel(RBTree *tree, void *key)
+{
+	void *value = rbtreeRemove(tree, key);
+	if (tree->free_value != NULL) {
+		tree->free_value(value);
+	}
+
 	return tree;
 }
 

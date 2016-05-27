@@ -19,6 +19,7 @@ size_t rbtreeSize(RBTree *tree);
 int rbtreeContains(RBTree *tree, void *key);
 void *rbtreeGet(RBTree *tree, void *key);
 RBTree *rbtreeSet(RBTree *tree, void *key, void *value);
+void *rbtreeRemove(RBTree *tree, void *key);
 RBTree *rbtreeDel(RBTree *tree, void *key);
 RBTree *rbtreeClear(RBTree *tree);
 void rbtreeDestroy(RBTree *tree);
