@@ -45,6 +45,36 @@ RBTree *rbtreeCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
 	return tree;
 }
 
+void (*rbtreeGetFreeKeyMethod(RBTree *tree))(void *key)
+{
+	return tree->free_key;
+}
+
+void rbtreeSetFreeKeyMethod(RBTree *tree, void (*free_key)(void *))
+{
+	tree->free_key = free_key;
+}
+
+void (*rbtreeGetFreeValueMethod(RBTree *tree))(void *value)
+{
+	return tree->free_value;
+}
+
+void rbtreeSetFreeValueMethod(RBTree *tree, void (*free_value)(void *))
+{
+	tree->free_value = free_value;
+}
+
+int (*rbtreeGetCompareMethod(RBTree *tree))(void *key1, void *key2)
+{
+	return tree->compare;
+}
+
+void rbtreeSetCompareMethod(RBTree *tree, int (*compare)(void *, void *))
+{
+	tree->compare = compare;
+}
+
 static void rotateLeft(RBTree *tree, RBTreeNode *node)
 {
 	RBTreeNode *parent = node->parent;
@@ -257,6 +287,19 @@ static RBTreeNode *rbtreeMinNode(RBTree *tree, RBTreeNode *root)
 	return root;
 }
 
+static void rbtreeFreeNode(RBTree *tree, RBTreeNode *node)
+{
+	if (tree->free_key != NULL) {
+		tree->free_key(node->key);
+	}
+
+	if (tree->free_value != NULL) {
+		tree->free_value(node->value);
+	}
+
+	tree->dealloc(node);
+}
+
 static void delFixUp(RBTree *tree, RBTreeNode *node)
 {
 	RBTreeNode *parent = NULL;
@@ -376,16 +419,7 @@ RBTree *rbtreeDel(RBTree *tree, void *key)
 	}
 
 	transplant(tree, node, fixUpNode);
-
-	if (tree->free_key != NULL) {
-		tree->free_key(node->key);
-	}
-
-	if (tree->free_value != NULL) {
-		tree->free_value(node->value);
-	}
-
-	tree->dealloc(node);
+	rbtreeFreeNode(tree, node);
 
 	if (color == RB_COLOR_BLACK) {
 		delFixUp(tree, fixUpNode);
@@ -418,16 +452,7 @@ RBTree *rbtreeClear(RBTree *tree)
 				RBTreeNode *tmpParent = NULL;
 				while (tmp != current) {
 					tmpParent = tmp->parent;
-
-					if (tree->free_key != NULL) {
-						tree->free_key(tmp->key);
-					}
-
-					if (tree->free_value != NULL) {
-						tree->free_value(tmp->value);
-					}
-
-					tree->dealloc(tmp);
+					rbtreeFreeNode(tree, tmp);
 					tmp = tmpParent;
 				}
 
