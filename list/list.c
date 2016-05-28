@@ -18,9 +18,9 @@ typedef struct ListNode {
 struct List {
 	void *(*alloc)(size_t);
 	void (*dealloc)(void *);
-	void *(*dup)(void *value);
-	void (*free)(void *value);
-	int (*compare)(void *value1, void *value2);
+	void *(*dup)(void *);
+	void (*free)(void *);
+	int (*compare)(void *, void *);
 
 	size_t length;
 	struct ListNode *head;

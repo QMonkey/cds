@@ -24,9 +24,9 @@ struct RBTree {
 
 	void *(*alloc)(size_t);
 	void (*dealloc)(void *);
-	void (*free_key)(void *key);
-	void (*free_value)(void *value);
-	int (*compare)(void *key1, void *key2);
+	void (*free_key)(void *);
+	void (*free_value)(void *);
+	int (*compare)(void *, void *);
 };
 
 struct RBTreeIter {
