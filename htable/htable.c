@@ -36,6 +36,14 @@ struct HashTable {
 	void (*free_value)(void *);
 };
 
+struct HashTableIter {
+	HashTable *table;
+	TableEntry *next;
+	size_t current_table_idx;
+	size_t current_index;
+	void (*dealloc)(void *);
+};
+
 HashTable *hashTableCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
 {
 	HashTable *htable = alloc(sizeof(HashTable));
@@ -44,6 +52,54 @@ HashTable *hashTableCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
 	htable->dealloc = dealloc;
 	htable->rehash_idx = -1;
 	return htable;
+}
+
+size_t (*getHashMethod(HashTable *htable))(void *) { return htable->hash; }
+
+void setHashMethod(HashTable *htable, size_t (*hash)(void *))
+{
+	htable->hash = hash;
+}
+
+int (*getCompareMethod(HashTable *htable))(void *, void *)
+{
+	return htable->compare;
+}
+
+void setCompareMethod(HashTable *htable, int (*compare)(void *, void *))
+{
+	htable->compare = compare;
+}
+
+void (*getFreeKeyMethod(HashTable *htable))(void *) { return htable->free_key; }
+
+void setFreeKeyMethod(HashTable *htable, void (*free_key)(void *))
+{
+	htable->free_key = free_key;
+}
+
+void (*getFreeValueMethod(HashTable *htable))(void *)
+{
+	return htable->free_value;
+}
+
+void setFreeValueMethod(HashTable *htable, void (*free_value)(void *))
+{
+	htable->free_value = free_value;
+}
+
+size_t hashTableSize(HashTable *htable)
+{
+	Table *table1 = htable->tables;
+	if (table1->entries == NULL) {
+		return 0;
+	}
+
+	if (htable->rehash_idx == -1) {
+		return table1->count;
+	}
+
+	return table1->count + htable->tables[1].count;
 }
 
 static HashTable *hashTableInit(HashTable *htable)
@@ -201,6 +257,10 @@ HashTable *hashTableSet(HashTable *htable, void *key, void *value)
 
 void *hashTableGet(HashTable *htable, void *key)
 {
+	if (htable->tables[0].entries == NULL) {
+		return NULL;
+	}
+
 	size_t index;
 	size_t table_idx;
 	hashTableGetIndex(htable, key, &table_idx, &index);
@@ -213,6 +273,11 @@ void *hashTableGet(HashTable *htable, void *key)
 	}
 
 	return NULL;
+}
+
+int HashTableContains(HashTable *htable, void *key)
+{
+	return hashTableGet(htable, key) != NULL;
 }
 
 void *hashTableRemove(HashTable *htable, void *key)
@@ -311,3 +376,51 @@ void hashTableDestroy(HashTable *htable)
 	hashTableClear(htable);
 	htable->dealloc(htable);
 }
+
+HashTableIter *hashTableIterator(HashTable *htable)
+{
+	HashTableIter *iter = htable->alloc(sizeof(HashTableIter));
+	iter->table = htable;
+	iter->current_table_idx = 0;
+	iter->current_index = htable->rehash_idx != -1 ? htable->rehash_idx : 0;
+	iter->next = htable->tables[0].entries[iter->current_index];
+	iter->dealloc = htable->dealloc;
+	return iter;
+}
+
+int hashTableIterHasNext(HashTableIter *iter) { return iter->next != NULL; }
+
+void hashTableIterNext(HashTableIter *iter, void **key_ptr, void **value_ptr)
+{
+	*key_ptr = iter->next->key;
+	*value_ptr = iter->next->value;
+
+	if (iter->next->next != NULL) {
+		iter->next = iter->next->next;
+		return;
+	}
+
+	Table *table1 = iter->table->tables;
+	Table *table2 = iter->table->tables + 1;
+
+	int isRehashing = iter->table->rehash_idx != -1;
+
+	if (!isRehashing && iter->current_index == table1->size - 1 ||
+	    isRehashing && iter->current_table_idx == 1 &&
+		iter->current_index == table2->size - 1) {
+		iter->next = NULL;
+		return;
+	}
+
+	if (isRehashing && iter->current_table_idx == 0 &&
+	    iter->current_index == table1->size - 1) {
+		iter->current_table_idx = 1;
+		iter->current_index = 0;
+	} else {
+		++iter->current_index;
+	}
+
+	// TODO
+}
+
+void hashTableIterDestroy(HashTableIter *iter) { iter->dealloc(iter); }
