@@ -1,5 +1,5 @@
-#ifndef HTABLE_H
-#define HTABLE_H
+#ifndef HASHTABLE_H
+#define HASHTABLE_H
 
 #include <stddef.h>
 
@@ -17,11 +17,11 @@ void (*getFreeValueMethod(HashTable *htable))(void *);
 void setFreeValueMethod(HashTable *htable, void (*free_value)(void *));
 size_t hashTableSize(HashTable *htable);
 int HashTableContains(HashTable *htable, void *key);
-HashTable *hashTableSet(HashTable *htable, void *key, void *value);
+void hashTableSet(HashTable *htable, void *key, void *value);
 void *hashTableGet(HashTable *htable, void *key);
 void *hashTableRemove(HashTable *htable, void *key);
-HashTable *hashTableDel(HashTable *htable, void *key);
-HashTable *hashTableClear(HashTable *htable);
+void hashTableDel(HashTable *htable, void *key);
+void hashTableClear(HashTable *htable);
 void hashTableDestroy(HashTable *htable);
 HashTableIter *hashTableIterator(HashTable *htable);
 

@@ -47,22 +47,13 @@ List *listCreate(void *(*alloc)(size_t), void (*dealloc)(void *))
 	return list;
 }
 
-List *listSetDupMethod(List *list, void *(*dup)(void *))
-{
-	list->dup = dup;
-	return list;
-}
+void listSetDupMethod(List *list, void *(*dup)(void *)) { list->dup = dup; }
 
-List *listSetFreeMethod(List *list, void (*free)(void *))
-{
-	list->free = free;
-	return list;
-}
+void listSetFreeMethod(List *list, void (*free)(void *)) { list->free = free; }
 
-List *listSetCompareMethod(List *list, int (*compare)(void *, void *))
+void listSetCompareMethod(List *list, int (*compare)(void *, void *))
 {
 	list->compare = compare;
-	return list;
 }
 
 void *(*listGetDupMethod(List *list))(void *) { return list->dup; }
@@ -76,7 +67,7 @@ int (*listGetCompareMethod(List *list))(void *, void *)
 
 size_t listLength(List *list) { return list->length; }
 
-List *listPushHead(List *list, void *value)
+void listPushHead(List *list, void *value)
 {
 	ListNode *node = list->alloc(sizeof(ListNode));
 	node->value = value;
@@ -92,10 +83,9 @@ List *listPushHead(List *list, void *value)
 	list->head = node;
 
 	++list->length;
-	return list;
 }
 
-List *listPushTail(List *list, void *value)
+void listPushTail(List *list, void *value)
 {
 	ListNode *node = list->alloc(sizeof(ListNode));
 	node->value = value;
@@ -111,19 +101,20 @@ List *listPushTail(List *list, void *value)
 	list->tail = node;
 
 	++list->length;
-	return list;
 }
 
-List *listInsert(List *list, int index, void *value)
+void listInsert(List *list, int index, void *value)
 {
 	assert(index >= 0 && index <= list->length);
 
 	if (index == 0) {
-		return listPushHead(list, value);
+		listPushHead(list, value);
+		return;
 	}
 
 	if (index == list->length) {
-		return listPushTail(list, value);
+		listPushTail(list, value);
+		return;
 	}
 
 	ListNode *newNode = list->alloc(sizeof(ListNode));
@@ -150,7 +141,6 @@ List *listInsert(List *list, int index, void *value)
 	node->prev = newNode;
 
 	++list->length;
-	return list;
 }
 
 int listContains(List *list, void *value)
@@ -304,7 +294,7 @@ void listRotate(List *list)
 	}
 }
 
-List *listClear(List *list)
+void listClear(List *list)
 {
 	ListNode *node = list->head;
 	ListNode *tmp = NULL;
@@ -321,7 +311,6 @@ List *listClear(List *list)
 	list->head = NULL;
 	list->tail = NULL;
 	list->length = 0;
-	return list;
 }
 
 void listDestroy(List *list)

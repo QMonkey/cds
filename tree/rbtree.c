@@ -1,4 +1,3 @@
-#include "pair.h"
 #include "rbtree.h"
 
 #include <stddef.h>
@@ -218,7 +217,7 @@ static void insertFixUp(RBTree *tree, RBTreeNode *node)
 	tree->root->color = RB_COLOR_BLACK;
 }
 
-RBTree *rbtreeSet(RBTree *tree, void *key, void *value)
+void rbtreeSet(RBTree *tree, void *key, void *value)
 {
 	RBTreeNode *later = NULL;
 	RBTreeNode *current = tree->root;
@@ -230,7 +229,7 @@ RBTree *rbtreeSet(RBTree *tree, void *key, void *value)
 				tree->free_value(current->value);
 			}
 			current->value = value;
-			return tree;
+			return;
 		}
 
 		if (cmp < 0) {
@@ -263,7 +262,6 @@ RBTree *rbtreeSet(RBTree *tree, void *key, void *value)
 	insertFixUp(tree, current);
 
 	++tree->size;
-	return tree;
 }
 
 static void transplant(RBTree *tree, RBTreeNode *dest, RBTreeNode *src)
@@ -440,18 +438,16 @@ void *rbtreeRemove(RBTree *tree, void *key)
 	return value;
 }
 
-RBTree *rbtreeDel(RBTree *tree, void *key)
+void rbtreeDel(RBTree *tree, void *key)
 {
 	void *value = rbtreeRemove(tree, key);
 	if (tree->free_value != NULL) {
 		tree->free_value(value);
 	}
-
-	return tree;
 }
 
 // Morris Postorder Traversal
-RBTree *rbtreeClear(RBTree *tree)
+void rbtreeClear(RBTree *tree)
 {
 	RBTreeNode node;
 	node.left = tree->root;
@@ -486,7 +482,6 @@ RBTree *rbtreeClear(RBTree *tree)
 
 	tree->root = NULL;
 	tree->size = 0;
-	return tree;
 }
 
 void rbtreeDestroy(RBTree *tree)
@@ -505,13 +500,11 @@ RBTreeIter *rbtreeIterator(RBTree *tree)
 
 int rbtreeIterHasNext(RBTreeIter *iter) { return iter->next != NULL; }
 
-Pair rbtreeIterNext(RBTreeIter *iter)
+void rbtreeIterNext(RBTreeIter *iter, void **key_ptr, void **value_ptr)
 {
-	Pair p;
-	p.first = iter->next->key;
-	p.second = iter->next->value;
+	*key_ptr = iter->next->key;
+	*value_ptr = iter->next->value;
 	iter->next = successor(iter->next);
-	return p;
 }
 
 void rbtreeIterDestroy(RBTreeIter *iter) { iter->dealloc(iter); }

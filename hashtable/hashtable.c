@@ -1,5 +1,4 @@
-#include "pair.h"
-#include "htable.h"
+#include "hashtable.h"
 
 #include <assert.h>
 #include <stddef.h>
@@ -215,7 +214,7 @@ static HashTable *hashTableCheckThreShold(HashTable *htable)
 	return htable;
 }
 
-HashTable *hashTableSet(HashTable *htable, void *key, void *value)
+void hashTableSet(HashTable *htable, void *key, void *value)
 {
 	if (htable->tables[0].entries == NULL) {
 		hashTableInit(htable);
@@ -251,8 +250,6 @@ HashTable *hashTableSet(HashTable *htable, void *key, void *value)
 	}
 
 	hashTableCheckThreShold(htable);
-
-	return htable;
 }
 
 void *hashTableGet(HashTable *htable, void *key)
@@ -313,10 +310,9 @@ void *hashTableRemove(HashTable *htable, void *key)
 	return value;
 }
 
-HashTable *hashTableDel(HashTable *htable, void *key)
+void hashTableDel(HashTable *htable, void *key)
 {
 	hashTableRemove(htable, key);
-	return htable;
 }
 
 HashTable *hashTableDestroyEntryList(HashTable *htable, TableEntry *head)
@@ -340,7 +336,7 @@ HashTable *hashTableDestroyEntryList(HashTable *htable, TableEntry *head)
 	return htable;
 }
 
-HashTable *hashTableClear(HashTable *htable)
+void hashTableClear(HashTable *htable)
 {
 	Table *table1 = htable->tables;
 	Table *table2 = htable->tables + 1;
@@ -367,8 +363,6 @@ HashTable *hashTableClear(HashTable *htable)
 	table1->entries = NULL;
 	table2->entries = NULL;
 	htable->rehash_idx = -1;
-
-	return htable;
 }
 
 void hashTableDestroy(HashTable *htable)
@@ -395,8 +389,8 @@ void hashTableIterNext(HashTableIter *iter, void **key_ptr, void **value_ptr)
 	*key_ptr = iter->next->key;
 	*value_ptr = iter->next->value;
 
-	if (iter->next->next != NULL) {
-		iter->next = iter->next->next;
+	iter->next = iter->next->next;
+	if (iter->next != NULL) {
 		return;
 	}
 
@@ -405,22 +399,24 @@ void hashTableIterNext(HashTableIter *iter, void **key_ptr, void **value_ptr)
 
 	int isRehashing = iter->table->rehash_idx != -1;
 
-	if (!isRehashing && iter->current_index == table1->size - 1 ||
-	    isRehashing && iter->current_table_idx == 1 &&
-		iter->current_index == table2->size - 1) {
-		iter->next = NULL;
-		return;
-	}
+	while (iter->next == NULL) {
+		if (!isRehashing && iter->current_index == table1->size - 1 ||
+		    isRehashing && iter->current_table_idx == 1 &&
+			iter->current_index == table2->size - 1) {
+			break;
+		}
 
-	if (isRehashing && iter->current_table_idx == 0 &&
-	    iter->current_index == table1->size - 1) {
-		iter->current_table_idx = 1;
-		iter->current_index = 0;
-	} else {
-		++iter->current_index;
-	}
+		if (isRehashing && iter->current_table_idx == 0 &&
+		    iter->current_index == table1->size - 1) {
+			iter->current_table_idx = 1;
+			iter->current_index = 0;
+		} else {
+			++iter->current_index;
+		}
 
-	// TODO
+		iter->next = iter->table->tables[iter->current_table_idx]
+				 .entries[iter->current_index];
+	}
 }
 
 void hashTableIterDestroy(HashTableIter *iter) { iter->dealloc(iter); }
