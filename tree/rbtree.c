@@ -405,9 +405,6 @@ void *rbtreeRemove(RBTree *tree, void *key)
 		if (tmpNode->parent == node) {
 			fixUpNode = tmpNode;
 		} else {
-			fixUpNode = tmpNode->right;
-			color = tmpNode->color;
-
 			void *tmp = NULL;
 			tmp = node->key;
 			node->key = tmpNode->key;
@@ -416,11 +413,25 @@ void *rbtreeRemove(RBTree *tree, void *key)
 			tmp = node->value;
 			node->value = tmpNode->value;
 			tmpNode->value = tmp;
+
 			node = tmpNode;
+			color = node->color;
+			fixUpNode = node->right;
 		}
 	}
 
-	transplant(tree, node, fixUpNode);
+	if (color != RB_COLOR_BLACK || fixUpNode != NULL) {
+		transplant(tree, node, fixUpNode);
+	}
+
+	if (color == RB_COLOR_BLACK) {
+		delFixUp(tree, fixUpNode);
+	}
+
+	if (color == RB_COLOR_BLACK && fixUpNode == NULL) {
+		// delay
+		transplant(tree, node, NULL);
+	}
 
 	void *value = node->value;
 
@@ -429,10 +440,6 @@ void *rbtreeRemove(RBTree *tree, void *key)
 	}
 
 	tree->dealloc(node);
-
-	if (color == RB_COLOR_BLACK) {
-		delFixUp(tree, fixUpNode);
-	}
 
 	--tree->size;
 	return value;
